@@ -179,6 +179,7 @@ console.log(`
 serve({
   fetch: app.fetch,
   port: PORT,
+  hostname: '127.0.0.1',
 }, (info) => {
   console.log(`Server running at http://localhost:${info.port}`);
   console.log(`

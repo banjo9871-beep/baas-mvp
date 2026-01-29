@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BaaS - Browser as a Service</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 48px;
+    }
+    
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+    }
+    
+    .logo span {
+      color: #3b82f6;
+    }
+    
+    .btn {
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: #3b82f6;
+      color: #fff;
+    }
+    
+    .btn-primary:hover {
+      background: #2563eb;
+    }
+    
+    .btn-secondary {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .btn-danger {
+      background: #ef4444;
+      color: #fff;
+    }
+    
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 48px;
+    }
+    
+    .stat-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 24px;
+    }
+    
+    .stat-label {
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 8px;
+    }
+    
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+    }
+    
+    .stat-value.green { color: #22c55e; }
+    .stat-value.blue { color: #3b82f6; }
+    .stat-value.yellow { color: #eab308; }
+    
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+    }
+    
+    .sessions-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(255,255,255,0.02);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    
+    .sessions-table th,
+    .sessions-table td {
+      padding: 16px 20px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .sessions-table th {
+      background: rgba(255,255,255,0.05);
+      font-weight: 500;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: rgba(255,255,255,0.6);
+    }
+    
+    .sessions-table td {
+      font-size: 14px;
+    }
+    
+    .session-id {
+      font-family: monospace;
+      background: rgba(59, 130, 246, 0.2);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    .status.active {
+      background: rgba(34, 197, 94, 0.2);
+      color: #22c55e;
+    }
+    
+    .status.active::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: #22c55e;
+      border-radius: 50%;
+    }
+    
+    .cdp-url {
+      font-family: monospace;
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: rgba(255,255,255,0.4);
+    }
+    
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    
+    .modal-overlay.active {
+      display: flex;
+    }
+    
+    .modal {
+      background: #1a1a1a;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 32px;
+      width: 100%;
+      max-width: 480px;
+    }
+    
+    .modal h2 {
+      margin-bottom: 24px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.7);
+    }
+    
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.05);
+      color: #fff;
+      font-size: 14px;
+    }
+    
+    .form-group input:focus {
+      outline: none;
+      border-color: #3b82f6;
+    }
+    
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 32px;
+    }
+    
+    .code-block {
+      background: #111;
+      border-radius: 8px;
+      padding: 16px;
+      font-family: monospace;
+      font-size: 13px;
+      overflow-x: auto;
+      margin-top: 24px;
+    }
+    
+    .code-block code {
+      color: #22c55e;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">🌐 <span>BaaS</span> Browser as a Service</div>
+      <button class="btn btn-primary" onclick="openModal()">+ New Session</button>
+    </header>
+    
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">Active Sessions</div>
+        <div class="stat-value green" id="active-count">3</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total This Month</div>
+        <div class="stat-value blue">127</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg. Session Time</div>
+        <div class="stat-value yellow">4.2m</div>
+      </div>
+    </div>
+    
+    <div class="section-header">
+      <h2 class="section-title">Active Sessions</h2>
+      <button class="btn btn-secondary btn-sm" onclick="refreshSessions()">↻ Refresh</button>
+    </div>
+    
+    <table class="sessions-table">
+      <thead>
+        <tr>
+          <th>Session ID</th>
+          <th>Status</th>
+          <th>CDP Endpoint</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="sessions-body">
+        <tr>
+          <td><span class="session-id">sess_O3TtfuoKnkj78NFx</span></td>
+          <td><span class="status active">Active</span></td>
+          <td><span class="cdp-url">ws://localhost:43169/7f41942d...</span></td>
+          <td>2 min ago</td>
+          <td class="actions">
+            <button class="btn btn-secondary btn-sm">Connect</button>
+            <button class="btn btn-danger btn-sm">Kill</button>
+          </td>
+        </tr>
+        <tr>
+          <td><span class="session-id">sess_Kx8mNpQr2vY4wZaB</span></td>
+          <td><span class="status active">Active</span></td>
+          <td><span class="cdp-url">ws://localhost:38291/a2c4e6f8...</span></td>
+          <td>15 min ago</td>
+          <td class="actions">
+            <button class="btn btn-secondary btn-sm">Connect</button>
+            <button class="btn btn-danger btn-sm">Kill</button>
+          </td>
+        </tr>
+        <tr>
+          <td><span class="session-id">sess_Lm9nPqRs3wX5yAbC</span></td>
+          <td><span class="status active">Active</span></td>
+          <td><span class="cdp-url">ws://localhost:42857/b3d5f7g9...</span></td>
+          <td>1 hour ago</td>
+          <td class="actions">
+            <button class="btn btn-secondary btn-sm">Connect</button>
+            <button class="btn btn-danger btn-sm">Kill</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <div class="code-block">
+      <strong style="color: #fff;">Quick Start:</strong><br><br>
+      <code>// Create a session</code><br>
+      <code>const res = await fetch('/api/sessions', { method: 'POST' });</code><br>
+      <code>const { session } = await res.json();</code><br><br>
+      <code>// Connect with Playwright</code><br>
+      <code>const browser = await chromium.connectOverCDP(session.cdpUrl);</code>
+    </div>
+  </div>
+  
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <h2>Create New Session</h2>
+      <div class="form-group">
+        <label>Viewport Size</label>
+        <select>
+          <option>1920x1080 (Desktop)</option>
+          <option>1366x768 (Laptop)</option>
+          <option>390x844 (iPhone 14)</option>
+          <option>360x800 (Android)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Proxy (optional)</label>
+        <input type="text" placeholder="http://user:pass@proxy:port">
+      </div>
+      <div class="form-group">
+        <label>User Agent (optional)</label>
+        <input type="text" placeholder="Custom user agent string">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="createSession()">Create Session</button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    function openModal() {
+      document.getElementById('modal').classList.add('active');
+    }
+    
+    function closeModal() {
+      document.getElementById('modal').classList.remove('active');
+    }
+    
+    function createSession() {
+      // Demo: add a new row
+      const tbody = document.getElementById('sessions-body');
+      const id = 'sess_' + Math.random().toString(36).substr(2, 16);
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><span class="session-id">${id}</span></td>
+        <td><span class="status active">Active</span></td>
+        <td><span class="cdp-url">ws://localhost:${30000 + Math.floor(Math.random()*10000)}/...</span></td>
+        <td>Just now</td>
+        <td class="actions">
+          <button class="btn btn-secondary btn-sm">Connect</button>
+          <button class="btn btn-danger btn-sm">Kill</button>
+        </td>
+      `;
+      tbody.insertBefore(row, tbody.firstChild);
+      document.getElementById('active-count').textContent = tbody.children.length;
+      closeModal();
+    }
+    
+    function refreshSessions() {
+      // Demo refresh animation
+      document.querySelector('.section-header button').textContent = '↻ Refreshing...';
+      setTimeout(() => {
+        document.querySelector('.section-header button').textContent = '↻ Refresh';
+      }, 500);
+    }
+  </script>
+</body>
+</html>
