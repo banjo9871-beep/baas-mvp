@@ -1,0 +1,26 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@hono/node-server": "^1.19.9",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "hono": "^4.11.7",
+    "nanoid": "^5.1.6",
+    "playwright": "^1.58.0",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "uuid": "^13.0.0",
+    "ws": "^8.19.0"
+  }
+}
